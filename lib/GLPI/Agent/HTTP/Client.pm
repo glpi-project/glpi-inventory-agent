@@ -603,8 +603,16 @@ sub _KeyChain_or_KeyStore_Export {
             SUFFIX      => ".pem",
         );
         my $file = $tmpfile->filename;
+        my store;
+        if ($self->{ssl_keystore})  {
+            foreach my $case (split(/,+/, $self->{ssl_keystore})) {
+                $case = trimWhitespace($case);
+                $store .= $case . " "
+                    if -e $case;
+            }
+        }
         getAllLines(
-            command => "security find-certificate -a -p > '$file'",
+            command => "security find-certificate -a -p $store >> '$file'",
             logger  => $logger
         );
         @certs = IO::Socket::SSL::Utils::PEM_file2certs($file)
