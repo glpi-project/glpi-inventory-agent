@@ -603,8 +603,9 @@ sub _KeyChain_or_KeyStore_Export {
             SUFFIX      => ".pem",
         );
         my $file = $tmpfile->filename;
-        my $store;
+        my $store = "/Library/Keychains/System.keychain,/System/Library/Keychains/SystemRootCertificates.keychain";
         if ($self->{ssl_keystore})  {
+            $store = "";
             foreach my $case (split(/,+/, $self->{ssl_keystore})) {
                 $case = trimWhitespace($case);
                 $store .= $case . " "
@@ -637,9 +638,7 @@ sub _KeyChain_or_KeyStore_Export {
                 "certutil -Silent -Split -Enterprise -Store CA",
                 "certutil -Silent -Split -Enterprise -Store Root",
                 "certutil -Silent -Split -GroupPolicy -Store CA",
-                "certutil -Silent -Split -GroupPolicy -Store Root",
-                "certutil -Silent -Split -User -Store CA",
-                "certutil -Silent -Split -User -Store Root"
+                "certutil -Silent -Split -GroupPolicy -Store Root"
             );
         }
 
