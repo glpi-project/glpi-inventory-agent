@@ -306,7 +306,7 @@ Set SNMP timeout, in seconds.
 
 Set maximum number of retries a SNMP request can be sent again after no response.
 
-=item B<--backen-collect-timeout> I<TIME>
+=item B<--backend-collect-timeout> I<TIME>
 
 Set base expiration timeout, in seconds. Global task expiration will depend on
 the number of ips.
