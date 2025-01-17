@@ -603,7 +603,7 @@ sub _KeyChain_or_KeyStore_Export {
             SUFFIX      => ".pem",
         );
         my $file = $tmpfile->filename;
-        my store;
+        my $store;
         if ($self->{ssl_keystore})  {
             foreach my $case (split(/,+/, $self->{ssl_keystore})) {
                 $case = trimWhitespace($case);
