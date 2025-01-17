@@ -612,7 +612,7 @@ sub _KeyChain_or_KeyStore_Export {
             }
         }
         getAllLines(
-            command => "security find-certificate -a -p $store >> '$file'",
+            command => "security find-certificate -a -p $store > '$file'",
             logger  => $logger
         );
         @certs = IO::Socket::SSL::Utils::PEM_file2certs($file)
