@@ -351,7 +351,7 @@ sub _sendMessage {
     my $message = GLPI::Agent::XML::Query->new(
         deviceid => $self->{deviceid} || 'foo',
         query    => 'SNMPQUERY',
-		tag      => $self->{config}->{'tag'},
+        tag      => $self->{config}->{'tag'},
         content  => $content
     );
 
