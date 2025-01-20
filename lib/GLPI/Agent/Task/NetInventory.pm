@@ -348,21 +348,16 @@ sub _sendMessage {
     # Load GLPI::Agent::XML::Query as late as possible
     return unless GLPI::Agent::XML::Query->require();
 
-    my $message;
-    if (defined($self->{config}->{tag}) && length($self->{config}->{tag})) {
-        $message = GLPI::Agent::XML::Query->new(
-            deviceid => $self->{deviceid} || 'foo',
-            query    => 'SNMPQUERY',
-            tag      => $self->{config}->{'tag'},
-            content  => $content
-        );
-    } else {
-        $message = GLPI::Agent::XML::Query->new(
-            deviceid => $self->{deviceid} || 'foo',
-            query    => 'SNMPQUERY',
-            content  => $content
-        );
-    }
+    my %message_params = (
+        deviceid => $self->{deviceid} || 'foo',
+        query    => 'SNMPQUERY',
+        content  => $content
+    );
+    $message_params{tag} = $self->{config}->{'tag'}
+        if defined($self->{config}->{tag}) && length($self->{config}->{tag});
+    my $message = GLPI::Agent::XML::Query->new(
+        %message_params
+    );
 
     if ($self->{target}->isType('local')) {
         my ($handle, $file);
