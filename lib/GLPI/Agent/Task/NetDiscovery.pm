@@ -621,18 +621,18 @@ sub _sendMessage {
 
     my $message;
     if (defined($self->{config}->{tag}) && length($self->{config}->{tag})) {
-		$message = GLPI::Agent::XML::Query->new(
-        	deviceid => $self->{deviceid} || 'foo',
-        	query    => 'NETDISCOVERY',
-        	tag      => $self->{config}->{'tag'},
-        	content  => $content
-    	);
+        $message = GLPI::Agent::XML::Query->new(
+            deviceid => $self->{deviceid} || 'foo',
+            query    => 'NETDISCOVERY',
+            tag      => $self->{config}->{'tag'},
+            content  => $content
+        );
     } else {
-		$message = GLPI::Agent::XML::Query->new(
-        	deviceid => $self->{deviceid} || 'foo',
-        	query    => 'NETDISCOVERY',
-        	content  => $content
-    	);
+        $message = GLPI::Agent::XML::Query->new(
+            deviceid => $self->{deviceid} || 'foo',
+            query    => 'NETDISCOVERY',
+            content  => $content
+        );
     }
 
     if ($self->{target}->isType('local')) {
