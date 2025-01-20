@@ -622,6 +622,7 @@ sub _sendMessage {
     my $message = GLPI::Agent::XML::Query->new(
         deviceid => $self->{deviceid} || 'foo',
         query    => 'NETDISCOVERY',
+		tag      => $self->{config}->{'tag'},
         content  => $content
     );
 
