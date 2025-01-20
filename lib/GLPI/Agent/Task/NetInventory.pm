@@ -355,6 +355,7 @@ sub _sendMessage {
     );
     $message_params{tag} = $self->{config}->{'tag'}
         if defined($self->{config}->{tag}) && length($self->{config}->{tag});
+
     my $message = GLPI::Agent::XML::Query->new(
         %message_params
     );
