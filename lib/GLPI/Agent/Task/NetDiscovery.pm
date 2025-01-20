@@ -619,12 +619,21 @@ sub _sendMessage {
     # Load GLPI::Agent::XML::Query as late as possible
     return unless GLPI::Agent::XML::Query->require();
 
-    my $message = GLPI::Agent::XML::Query->new(
-        deviceid => $self->{deviceid} || 'foo',
-        query    => 'NETDISCOVERY',
-        tag      => $self->{config}->{'tag'},
-        content  => $content
-    );
+    my $message;
+    if (defined($self->{config}->{tag}) && length($self->{config}->{tag})) {
+		$message = GLPI::Agent::XML::Query->new(
+        	deviceid => $self->{deviceid} || 'foo',
+        	query    => 'NETDISCOVERY',
+        	tag      => $self->{config}->{'tag'},
+        	content  => $content
+    	);
+    } else {
+		$message = GLPI::Agent::XML::Query->new(
+        	deviceid => $self->{deviceid} || 'foo',
+        	query    => 'NETDISCOVERY',
+        	content  => $content
+    	);
+    }
 
     if ($self->{target}->isType('local')) {
         my ($handle, $file, $ip);
