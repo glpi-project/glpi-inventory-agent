@@ -778,24 +778,18 @@ sub save {
 
         my $xml = GLPI::Agent::XML->new();
 
-        if (defined($self->{config}->{tag}) && length($self->{config}->{tag})) {
-            print $handle $xml->write({
-                REQUEST => {
-                    CONTENT  => $self->getContent(),
-                    DEVICEID => $self->getDeviceId(),
-                    QUERY    => "INVENTORY",
-                }
-            });
-        } else {
-            print $handle $xml->write({
-                REQUEST => {
-                    CONTENT  => $self->getContent(),
-                    DEVICEID => $self->getDeviceId(),
-                    QUERY    => "INVENTORY",
-                    TAG      => $self->{config}->{'tag'},
-                }
-            });
-        }
+        my %request_params = (REQUEST => {
+            CONTENT  => $self->getContent(),
+            DEVICEID => $self->getDeviceId(),
+            QUERY    => "INVENTORY",
+        });
+        my $config = $self->{config} || GLPI::Agent::Config->new();
+        $request_params{REQUEST}{TAG} = $config->{tag}
+            if defined($config->{tag}) && length($config->{tag});
+
+        print $handle $xml->write({
+            %request_params
+        });
 
     } elsif ($format eq 'html') {
 
