@@ -93,7 +93,7 @@ sub getPortIfType {
     # Get list of device ports types (lan(1)/wirelesslan(2))
     my $brMultiIFType = $self->walk(brMultiIFType) || {};
 
-    # Get list of device ports names 
+    # Get list of device ports names
     my $brMultiIFNodeType = $self->walk(brMultiIFNodeType) || {};
 
     foreach my $index (keys %{$brMultiIFType}) {
