@@ -19,6 +19,8 @@ use constant    printerinfomation   => net_peripheral . '.4.2.1.5.5' ;
 use constant    brInfoSerialNumber  => printerinfomation . '.1.0' ;
 use constant    brScanCountCounter  => printerinfomation . '.54.2.2.1.3.3';
 
+use constant    brpsWLanName        => brother . '.2.4.3.100.11.1.3';
+
 # Brother NetConfig
 use constant    brnetconfig => brother . '.2.4.3.1240' ;
 use constant    brconfig    => brnetconfig . '.1' ;
@@ -77,6 +79,40 @@ sub getModel {
     return $model;
 }
 
+sub getWlanPorts {
+    my ($self) = @_;
+
+    my $device = $self->device
+        or return;
+
+    # Get list of device ports
+    my %ports = %{$device->{PORTS}->{PORT}};  # Shallow copy
+    foreach my $key (keys %ports) {
+        $ports{$key} = {%{$ports{$key}}};  # Deep copy for one level deep hash
+    }
+    
+    foreach my $port (keys %ports) {
+        # Loopback or DOWN interfaces
+        if ($ports{$port}->{IFTYPE} == 24 || $ports{$port}->{IFTYPE} == 2) {
+            delete $ports{$port};
+        }
+    }
+    
+    # Only one interface remaining and actually connected to a WLAN network
+    my $brpsWLanName = $self->walk(brpsWLanName);
+    if (scalar(keys %ports) == 1 && $brpsWLanName) {
+        foreach my $port (keys %ports) {
+            # Replaces the port ifType from "Ethernet" to "WiFi" (71)
+            if ($ports{$port}->{IFTYPE} == 6 || $ports{$port}->{IFTYPE} == 7) {
+                # WLAN network name strlen is greather than zero
+                if (length((keys %{$brpsWLanName})[0]) gt 0) {
+                    $device->{PORTS}->{PORT}->{$port}->{IFTYPE} = 71;
+                }
+            };
+        }
+    }
+}
+
 sub run {
     my ($self) = @_;
 
@@ -92,6 +128,8 @@ sub run {
             or next;
         $device->{PAGECOUNTERS}->{$counter} = $count;
     }
+    
+    $self->getWlanPorts();
 }
 
 1;
