@@ -98,7 +98,7 @@ sub getPortIfType {
 
     foreach my $index (keys %{$brMultiIFType}) {
         foreach my $port (keys %{$ports}) {
-            if ($ports->{$port}->{IFDESCR} eq $brMultiIFNodeType->{$index}) {
+            if ($ports->{$port}->{IFNAME} eq $brMultiIFNodeType->{$index}) {
                 # wirelesslan(2)
                 if (defined($brMultiIFType->{$index}) && $brMultiIFType->{$index} eq 2) {
                     # ieee80211(71)
