@@ -95,7 +95,8 @@ sub getPortIfType {
         or return;
 
     # Get list of device ports names
-    my $brMultiIFNodeType = $self->walk(brMultiIFNodeType) || {};
+    my $brMultiIFNodeType = $self->walk(brMultiIFNodeType)
+        or return;
 
     foreach my $index (keys %{$brMultiIFType}) {
         foreach my $port (keys %{$ports}) {
