@@ -81,7 +81,7 @@ sub getModel {
     return $model;
 }
 
-sub getPortIfType {
+sub updatePortIfType {
     my ($self) = @_;
 
     my $device = $self->device
@@ -128,7 +128,7 @@ sub run {
         $device->{PAGECOUNTERS}->{$counter} = $count;
     }
 
-    $self->getPortIfType();
+    $self->updatePortIfType();
 }
 
 1;
