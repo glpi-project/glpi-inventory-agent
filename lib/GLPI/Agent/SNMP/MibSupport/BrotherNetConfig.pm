@@ -101,7 +101,7 @@ sub updatePortIfType {
     foreach my $index (keys %{$brMultiIFType}) {
         foreach my $port (keys %{$ports}) {
             next unless defined($ports->{$port}->{IFNAME}) && defined($brMultiIFNodeType->{$index});
-            if ($ports->{$port}->{IFNAME} eq $brMultiIFNodeType->{$index}) {
+            if ($ports->{$port}->{IFNAME} eq getCanonicalString($brMultiIFNodeType->{$index})) {
                 # wirelesslan(2)
                 if (defined($brMultiIFType->{$index}) && isInteger($brMultiIFType->{$index}) && int($brMultiIFType->{$index}) == 2) {
                     # ieee80211(71)
