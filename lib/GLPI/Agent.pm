@@ -210,11 +210,64 @@ sub runTarget {
         $self->{logger}->info("target $target->{id}: " . $target->getType() . " " . $target->getName());
     }
 
-    # the prolog/contact dialog must be done once for all tasks,
-    # but only for server targets
+    # By default, PROLOG request could be avoided when communicating with a GLPI server
+    # But it still may be required if we detect server supports any task due to glpiinventory plugin
     my ($response, $contact_response);
     my $client;
     my @plannedTasks = $target->plannedTasks();
+    if ($target->isType('server') && $target->doProlog()) {
+
+        return unless GLPI::Agent::HTTP::Client::OCS->require();
+
+        my $agentid;
+        # We may have to simulate a legacy PROLOG call if we just need to get an XML answer as
+        # we still known the server is a GLPI one. This is the case when we need to support
+        # glpiinventory plugin and then we just need to keep agentid undefined
+        $agentid = uuid_to_string($self->{agentid})
+            unless $target->isGlpiServer();
+
+        $client = GLPI::Agent::HTTP::Client::OCS->new(
+            logger  => $self->{logger},
+            config  => $self->{config},
+            agentid => $agentid,
+        );
+
+        return unless GLPI::Agent::XML::Query::Prolog->require();
+
+        my $prolog = GLPI::Agent::XML::Query::Prolog->new(
+            deviceid => $self->{deviceid},
+        );
+
+        $self->{logger}->info("sending prolog request to $target->{id}");
+        $response = $client->send(
+            url     => $target->getUrl(),
+            message => $prolog
+        );
+        unless ($response) {
+            $self->{logger}->error("No supported answer from server at ".$target->getUrl());
+            # Return true on net error
+            return 1;
+        }
+
+        # Check if we got a GLPI server answer
+        if (ref($response) =~ /^GLPI::Agent::Protocol::/) {
+            # Set and log server is a glpi one only if this is a new information
+            unless ($target->isGlpiServer()) {
+                $self->{logger}->info("$target->{id} answer shows it supports GLPI Agent protocol");
+                $target->isGlpiServer('true');
+            }
+        } else {
+            # update target
+            my $content = $response->getContent();
+            # setMaxDelay has still been called after CONTACT request in target is a GLPI server
+            if (defined($content->{PROLOG_FREQ}) && !$target->isGlpiServer()) {
+                $target->setMaxDelay($content->{PROLOG_FREQ} * 3600);
+            }
+        }
+    }
+
+    # the prolog/contact dialog must be done once for all tasks,
+    # but only for server targets
     if ($target->isGlpiServer()) {
         GLPI::Agent::HTTP::Client::GLPI->require();
         return $self->{logger}->error("GLPI Protocol library can't be loaded")
@@ -264,8 +317,7 @@ sub runTarget {
         if (ref($response) !~ /^GLPI::Agent::Protocol::/) {
             $self->{logger}->info("$target->{id} is not understanding GLPI Agent protocol");
             $target->isGlpiServer('false');
-            # return true to soon fallback on PROLOG request
-            return 1;
+            return $self->runTarget($target) unless $response->expiration;
         }
 
         # Handle contact answer including expiration and/or errors
@@ -349,60 +401,6 @@ sub runTarget {
 
         # Keep contact response
         $contact_response = $response;
-    }
-
-    # By default, PROLOG request could be avoided when communicating with a GLPI server
-    # But it still may be required if we detect server supports any task due to glpiinventory plugin
-    if ($target->isType('server') && $target->doProlog()) {
-
-        return unless GLPI::Agent::HTTP::Client::OCS->require();
-
-        my $agentid;
-        # We may have to simulate a legacy PROLOG call if we just need to get an XML answer as
-        # we still known the server is a GLPI one. This is the case when we need to support
-        # glpiinventory plugin and then we just need to keep agentid undefined
-        $agentid = uuid_to_string($self->{agentid})
-            unless $target->isGlpiServer();
-
-        $client = GLPI::Agent::HTTP::Client::OCS->new(
-            logger  => $self->{logger},
-            config  => $self->{config},
-            agentid => $agentid,
-        );
-
-        return unless GLPI::Agent::XML::Query::Prolog->require();
-
-        my $prolog = GLPI::Agent::XML::Query::Prolog->new(
-            deviceid => $self->{deviceid},
-        );
-
-        $self->{logger}->info("sending prolog request to $target->{id}");
-        $response = $client->send(
-            url     => $target->getUrl(),
-            message => $prolog
-        );
-        unless ($response) {
-            $self->{logger}->error("No supported answer from server at ".$target->getUrl());
-            # Return true on net error
-            return 1;
-        }
-
-        # Check if we got a GLPI server answer
-        if (ref($response) =~ /^GLPI::Agent::Protocol::/) {
-            # Set and log server is a glpi one only if this is a new information
-            unless ($target->isGlpiServer()) {
-                $self->{logger}->info("$target->{id} answer shows it supports GLPI Agent protocol");
-                $target->isGlpiServer('true');
-                return $self->runTarget($target) unless $response->expiration;
-            }
-        } else {
-            # update target
-            my $content = $response->getContent();
-            # setMaxDelay has still been called after CONTACT request in target is a GLPI server
-            if (defined($content->{PROLOG_FREQ}) && !$target->isGlpiServer()) {
-                $target->setMaxDelay($content->{PROLOG_FREQ} * 3600);
-            }
-        }
     }
 
     # Used when running tasks after a taskrun event
