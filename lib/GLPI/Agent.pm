@@ -401,8 +401,6 @@ sub runTarget {
 
         # Keep contact response
         $contact_response = $response;
-    } else {
-        return $self->runTarget($target) unless $response->expiration;
     }
 
     # Used when running tasks after a taskrun event
