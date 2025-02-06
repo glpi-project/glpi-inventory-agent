@@ -317,7 +317,7 @@ sub runTarget {
         if (ref($response) !~ /^GLPI::Agent::Protocol::/) {
             $self->{logger}->info("$target->{id} is not understanding GLPI Agent protocol");
             $target->isGlpiServer('false');
-            return $self->runTarget($target) unless $response->expiration;
+            return 0;
         }
 
         # Handle contact answer including expiration and/or errors
@@ -401,6 +401,8 @@ sub runTarget {
 
         # Keep contact response
         $contact_response = $response;
+    } else {
+        return $self->runTarget($target) unless $response->expiration;
     }
 
     # Used when running tasks after a taskrun event
